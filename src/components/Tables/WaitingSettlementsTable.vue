@@ -1,0 +1,63 @@
+<template>
+  <div class="waiting-settlement-table">
+    <DataTable 
+      :value="!loading && resultGet?.data?.data" 
+      tableStyle="width:100%;overflow-x:scroll;" 
+      class="table centered-table"
+      v-if="!loading && resultGet?.data?.data.length !== 0"
+    >
+      <Column field="id" header="رقم الطلب" :style="{minWidth: '120px'}"></Column>
+      <Column field="total" header="إجمالي الطلبات" :style="{minWidth: '120px'}"></Column>
+      <Column field="app_commission" header="إجمالي العموله" :style="{minWidth: '120px'}"></Column>
+      <Column field="tax" header="إجمالي القيمه المضافه" :style="{minWidth: '120px'}"></Column>
+      <Column field="provider_total" header="المستحق" :style="{minWidth: '120px'}"></Column>
+      <Column>
+        <template #body="slotProps">
+          <RouterLink :to="'/home/settlement-orders?type=pending&id=' + slotProps.data.id" class="image">
+            <img src="../../assets/images/scale.png" alt="img" loading="lazy">
+          </RouterLink>
+        </template>
+      </Column>
+    </DataTable>
+    <!-- Loading Skeleton Table -->
+    <DataTable v-else-if="loading" :value="[{}, {}, {}, {}, {}]" tableStyle="width:100%;overflow-x:scroll;" class="table centered-table statistics-table">
+      <Column v-for="i in 7" :key="i" :field="`skeleton-${i}`" header=" " :style="{ minWidth: '120px' }">
+        <template #body>
+          <Skeleton width="100%" height="1rem" />
+        </template>
+      </Column>
+    </DataTable>
+    <Empty v-else-if="resultGet?.data?.data.length === 0" empty-text="طلبات تسويه فـ انتظار الموافقة" />
+  </div>
+  <Pagination
+    :data="resultGet?.data?.pagination"
+    @handlePagination="handlePaginationData"
+  />
+</template>
+
+<script setup>
+  import DataTable from 'primevue/datatable';
+  import Column from 'primevue/column';
+  import Pagination from '../Pagination.vue';
+  import Skeleton from 'primevue/skeleton';
+  import Empty from '../Empty.vue';
+  import useApiMethods from '../../mixins/ApiMethods';
+  import { onMounted } from 'vue';  
+
+  const {
+    getMethod,
+    resultGet,
+    loading
+  } = useApiMethods()
+  
+
+  
+  const handlePaginationData = (pageNum) =>{
+    getMethod(`/api/merchant/settlement-request?type='pending&page=${pageNum}` , true)
+  }
+
+  onMounted(()=>{
+    getMethod(`/api/merchant/settlement-request?type=pending&page=1` , true)
+  })
+</script>
+
